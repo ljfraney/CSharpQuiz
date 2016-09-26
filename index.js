@@ -334,7 +334,7 @@ var CARD_TITLE = "Welcome. Question 1 of " + GAME_LENGTH;
 
 function getWelcomeResponse(callback) {
     var sessionAttributes = {},
-        speechOutput = "Welcome to C# Quiz. I'll ask " + GAME_LENGTH.toString()
+        speechOutput = "Testing 1, 2, 3,, Welcome to C# Quiz. I'll ask " + GAME_LENGTH.toString()
             + " questions about C#, DotNet, and Object Oriented Programming. Just say the number of the answer. Let's get started. ",
         shouldEndSession = false,
 
