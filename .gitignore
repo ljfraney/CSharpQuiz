@@ -21,6 +21,11 @@ coverage
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
+# grunt-aws-lambda (https://github.com/Tim-B/grunt-aws-lambda#add-dist-to-your-npmignore)
+event.json
+Gruntfile.js
+dist
+
 # node-waf configuration
 .lock-wscript
 
