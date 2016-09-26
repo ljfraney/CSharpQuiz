@@ -1,0 +1,23 @@
+{
+  "name": "csharpquiz",
+  "version": "1.0.0",
+  "description": "The game logic for the C# Quiz Alexa skill",
+  "main": "csharpquiz.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ljfraney/CSharpQuiz.git"
+  },
+  "author": "Josh Franey <ljfraney@yahoo.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ljfraney/CSharpQuiz/issues"
+  },
+  "homepage": "https://github.com/ljfraney/CSharpQuiz#readme",
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-aws-lambda": "^0.13.0"
+  }
+}
