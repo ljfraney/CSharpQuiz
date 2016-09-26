@@ -2,7 +2,7 @@
   "name": "csharpquiz",
   "version": "1.0.0",
   "description": "The game logic for the C# Quiz Alexa skill",
-  "main": "csharpquiz.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
