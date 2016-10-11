@@ -127,7 +127,7 @@ var questions = [
         ]
     },
     {
-        "This type should be used to hold decimal values when conserving memory is of greate3st importance, and precision is not a major concern.": [
+        "This type should be used to hold decimal values when conserving memory is of greatest importance, and precision is not a major concern.": [
             "float",
             "decimal",
             "double",
@@ -282,8 +282,14 @@ function onLaunch(launchRequest, session, callback) {
 function onIntent(intentRequest, session, callback) {
     console.log("onIntent requestId=" + intentRequest.requestId + ", sessionId=" + session.sessionId);
 
-    var intent = intentRequest.intent,
-        intentName = intentRequest.intent.name;
+    var intent = intentRequest.intent;
+    var intentName = intentRequest.intent.name;
+
+    if (session.attributes && session.attributes.userProptedForQuestionCount) {
+        delete session.attributes.userProptedForQuestionCount;
+        if ("AMAZON.NUMBER" === intentName)
+            handleNumberOfQuestionsRequest(intent, session, callback);
+    }
 
     // handle yes/no intent after the user has been prompted
     if (session.attributes && session.attributes.userPromptedToContinue) {
@@ -330,15 +336,35 @@ function onSessionEnded(sessionEndedRequest, session) {
 
 var ANSWER_COUNT = 4;
 var GAME_LENGTH = 5;
-var CARD_TITLE = "Welcome. Question 1 of " + GAME_LENGTH;
+var CARD_TITLE = "Welcome to C# Quiz";
 
 function getWelcomeResponse(callback) {
-    var sessionAttributes = {},
-        speechOutput = "Welcome to C# Quiz. I'll ask " + GAME_LENGTH.toString()
-            + " questions about C#, DotNet, and Object Oriented Programming. Just say the number of the answer. Let's get started. ",
-        shouldEndSession = false,
+    console.log("getWelcomeResponse called.")
 
-        gameQuestions = populateGameQuestions(),
+    var sessionAttributes = {};
+    var speechOutput = "Welcome to C# Quiz. In this quiz, you will answer questions about C#, DotNet, and Object Oriented Programming. ";    
+    var repromptText = "I currently have " + questions.length + " questions in my question bank. How many questions would you like me to ask? ";
+    var shouldEndSession = false;
+
+    speechOutput += repromptText;
+
+    sessionAttributes = {
+        "speechOutput": speechOutput,
+        "repromptText": repromptText,
+        "userProptedForQuestionCount": true
+    };
+
+    callback(sessionAttributes, buildSpeechletResponse(CARD_TITLE, speechOutput, repromptText, shouldEndSession));
+}
+
+function getWelcomeResponse2(callback) {
+    console.log("getWelcomeResponse2 called.")
+    // var sessionAttributes = {},
+    //     speechOutput = "Welcome to C# Quiz. I'll ask " + GAME_LENGTH.toString()
+    //         + " questions about C#, DotNet, and Object Oriented Programming. Just say the number of the answer. Let's get started. ",
+    //     shouldEndSession = false,
+
+    var gameQuestions = populateGameQuestions(),
         correctAnswerIndex = Math.floor(Math.random() * (ANSWER_COUNT)), // Generate a random index for the correct answer, from 0 to 3
         roundAnswers = populateRoundAnswers(gameQuestions, 0, correctAnswerIndex),
 
@@ -418,6 +444,20 @@ function populateRoundAnswers(gameQuestionIndexes, correctAnswerIndex, correctAn
     return answers;
 }
 
+function handleNumberOfQuestionsRequest(intent, session, callback) {
+    var speechOutput = "";
+    if (!isNaN(parseInt(intent.slots.Answer.value)) && !(parseInt(intent.slots.Answer.value) > questions.length)) {
+        GAME_LENGTH = parseInt(intent.slots.Answer.value);
+        getWelcomeResponse2(callback);
+    }
+    else {
+        var reprompt = session.attributes.speechOutput;
+        speechOutput = reprompt + "Please respond with a number between 1 and " + questions.length + ". ";
+        CARD_TITLE = "Invalid Number of Questions";
+        callback(session.attributes, buildSpeechletResponse(CARD_TITLE, speechOutput, reprompt, false));
+    }    
+}
+
 function handleAnswerRequest(intent, session, callback) {
     var speechOutput = "";
     var sessionAttributes = {};
@@ -482,7 +522,6 @@ function handleAnswerRequest(intent, session, callback) {
             // Generate a random index for the correct answer, from 0 to 3
             correctAnswerIndex = Math.floor(Math.random() * (ANSWER_COUNT));
             var roundAnswers = populateRoundAnswers(gameQuestions, currentQuestionIndex, correctAnswerIndex),
-
                 questionIndexForSpeech = currentQuestionIndex + 1,
                 repromptText = "Question " + questionIndexForSpeech.toString() + ". " + spokenQuestion + " ";
             for (var i = 0; i < ANSWER_COUNT; i++) {
