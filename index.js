@@ -472,7 +472,7 @@ function populateRoundAnswers(gameQuestionIndexes, correctAnswerIndex, correctAn
 }
 
 function handleNumberOfQuestionsRequest(intent, session, callback) {
-    if (numQuestionsValid(intent)) {
+    if (isGreaterThanZero(intent) && parseInt(intent.slots.Answer.value) <= questions.length) {
         delete session.attributes.userPromptedForQuestionCount;
         GAME_LENGTH = parseInt(intent.slots.Answer.value);
         startGame(callback);
@@ -492,7 +492,7 @@ function handleAnswerRequest(intent, session, callback) {
     var speechOutput = "";
     var sessionAttributes = {};
     var gameInProgress = session.attributes && session.attributes.questions;
-    var answerSlotValid = isAnswerSlotValid(intent);
+    var answerSlotValid = isGreaterThanZero(intent) && parseInt(intent.slots.Answer.value) <= ANSWER_COUNT;
     var userGaveUp = intent.name === "DontKnowIntent";
 
     if (!gameInProgress) {
@@ -632,16 +632,10 @@ function handleFinishSessionRequest(intent, session, callback) {
     callback(session.attributes, buildSpeechletResponseWithoutCard("Good bye!", "", true));
 }
 
-function numQuestionsValid(intent) {
-    var numQuestionsFilled = intent.slots && intent.slots.Answer && intent.slots.Answer.value;
-    var numQuestionsIsInt = numQuestionsFilled && !isNaN(parseInt(intent.slots.Answer.value));
-    return numQuestionsIsInt && parseInt(intent.slots.Answer.value) <= questions.length;
-}
-
-function isAnswerSlotValid(intent) {
-    var answerSlotFilled = intent.slots && intent.slots.Answer && intent.slots.Answer.value;
-    var answerSlotIsInt = answerSlotFilled && !isNaN(parseInt(intent.slots.Answer.value));
-    return answerSlotIsInt && parseInt(intent.slots.Answer.value) < (ANSWER_COUNT + 1) && parseInt(intent.slots.Answer.value) > 0;
+function isGreaterThanZero(intent) {
+    var isFilled = intent.slots && intent.slots.Answer && intent.slots.Answer.value;
+    var isInt = isFilled && !isNaN(parseInt(intent.slots.Answer.value));
+    return isInt && parseInt(intent.slots.Answer.value) > 0;
 }
 
 // ------- Helper functions to build responses -------
