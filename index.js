@@ -218,11 +218,6 @@ var questions = [
         ]
     },
     {
-        "C# was developed by a team at Microsoft led by this original author of Turbo Pascal. ": [
-            "Anders Hejlsberg", "Bill Gates", "Linus Torvalds", "Robert Martin"
-        ]
-    },
-    {
         "A method added to an object after the object is compiled is known as, ": [
             "an extension method", "a protected method", "an alteration method", "a static method" 
         ]
@@ -250,6 +245,21 @@ var questions = [
     {
         "The process of converting an object into a stream of bytes in order to store the object or transmit it to memory, a database, or a file is known as, ": [
             "serialization", "streaming", "encoding", "stringifying"
+        ]
+    },
+    {
+        "This C# keyword is used to declare a scope that contains a set of related objects. ": [
+            "namespace", "class", "assembly", "public"
+        ]
+    },
+    {
+        "These classes and methods can be instantiated or called with type parameters, deferring the specification of one or more types until the class or method is declared and instantiated by client code. ": [
+            "generics", "anonymous types", "inferred types", "dynamics"
+        ]
+    },
+    {
+        "This C# keyword is used to tell the compiler that a variable's type can change or that it is not known until runtime. ": [
+            "dynamic", "var", "abstract", "nullable"
         ]
     }
 ];
@@ -361,14 +371,13 @@ var CARD_TITLE = "Welcome to C# Quiz";
 function getWelcomeResponse(callback) {
     console.log("getWelcomeResponse called.")
 
-    var sessionAttributes = {};
     var speechOutput = "Welcome to C# Quiz. In this quiz, you will answer questions about C#, DotNet, and Object Oriented Programming. ";    
     var repromptText = "I currently have " + questions.length + " questions in my question bank. How many questions would you like me to ask? ";
     var shouldEndSession = false;
 
     speechOutput += repromptText;
 
-    sessionAttributes = {
+    var sessionAttributes = {
         "speechOutput": speechOutput,
         "repromptText": repromptText,
         "userPromptedForQuestionCount": true
@@ -377,36 +386,32 @@ function getWelcomeResponse(callback) {
     callback(sessionAttributes, buildSpeechletResponse(CARD_TITLE, speechOutput, repromptText, shouldEndSession));
 }
 
-function getWelcomeResponse2(callback) {
-    console.log("getWelcomeResponse2 called.")
+function startGame(callback) {
+    console.log("startGame called.")
 
-    var speechOutput = "OK. I will ask " + GAME_LENGTH + " questions. ";
-    var shouldEndSession = false;
-
-    var sessionAttributes = {};
+    CARD_TITLE = "Question 1 of " + GAME_LENGTH;
+    var speechOutput = "OK. I will ask " + GAME_LENGTH + " " + (GAME_LENGTH == 1 ? "question. " : "questions. ");
     var gameQuestions = populateGameQuestions();
     var correctAnswerIndex = Math.floor(Math.random() * (ANSWER_COUNT)); // Generate a random index for the correct answer, from 0 to 3
     var roundAnswers = populateRoundAnswers(gameQuestions, 0, correctAnswerIndex);
-
     var currentQuestionIndex = 0;
     var spokenQuestion = Object.keys(questions[gameQuestions[currentQuestionIndex]])[0];
     var repromptText = "Question 1. " + spokenQuestion + " ";
+    var shouldEndSession = false;
 
     for (var i = 0; i < ANSWER_COUNT; i++)
         repromptText += (i + 1).toString() + ". " + roundAnswers[i] + ". ";
     
     speechOutput += repromptText;
-    // sessionAttributes = {
-    //     "speechOutput": speechOutput,
-    //     "repromptText": repromptText,
-    //     "currentQuestionIndex": currentQuestionIndex,
-    //     "correctAnswerIndex": correctAnswerIndex + 1,
-    //     "questions": gameQuestions,
-    //     "score": 0,
-    //     "correctAnswerText": questions[gameQuestions[currentQuestionIndex]][Object.keys(questions[gameQuestions[currentQuestionIndex]])[0]][0]
-    // };
-
-    //TODO: It is breaking if we set sessionAttributes.
+    var sessionAttributes = {
+        "speechOutput": speechOutput,
+        "repromptText": repromptText,
+        "currentQuestionIndex": currentQuestionIndex,
+        "correctAnswerIndex": correctAnswerIndex + 1,
+        "questions": gameQuestions,
+        "score": 0,
+        "correctAnswerText": questions[gameQuestions[currentQuestionIndex]][Object.keys(questions[gameQuestions[currentQuestionIndex]])[0]][0]
+    };
     
     callback(sessionAttributes, buildSpeechletResponse(CARD_TITLE, speechOutput, repromptText, shouldEndSession));
 }
@@ -467,17 +472,20 @@ function populateRoundAnswers(gameQuestionIndexes, correctAnswerIndex, correctAn
 }
 
 function handleNumberOfQuestionsRequest(intent, session, callback) {
-    var speechOutput = "";
-
     if (numQuestionsValid(intent)) {
         delete session.attributes.userPromptedForQuestionCount;
         GAME_LENGTH = parseInt(intent.slots.Answer.value);
-        getWelcomeResponse2(callback);
+        startGame(callback);
     }
     else {
-        speechOutput = "Please respond with a number between 1 and " + questions.length + ". ";
-        callback(session.attributes, buildSpeechletResponse(CARD_TITLE, speechOutput, speechOutput, false));
+        var speechOutput = "Please respond with a number between 1 and " + questions.length + ". ";
+        callback(session.attributes, buildSpeechletResponseWithoutCard(speechOutput, speechOutput, false));
     }
+}
+
+function randomIntFromInterval(min, max)
+{
+    return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 function handleAnswerRequest(intent, session, callback) {
@@ -512,28 +520,45 @@ function handleAnswerRequest(intent, session, callback) {
 
         if (answerSlotValid && parseInt(intent.slots.Answer.value) == correctAnswerIndex) {
             currentScore++;
-            speechOutputAnalysis = "correct. ";
+
+            var correctResponseIndex = randomIntFromInterval(1, 3);
+            if (correctResponseIndex == 1)
+                speechOutputAnalysis = "That answer is correct. ";
+            else if (correctResponseIndex == 2)
+                speechOutputAnalysis = "That's right. ";
+            else
+                speechOutputAnalysis = "You got it. ";
+
             CARD_TITLE = "Correct Answer!";
         } else {
-            if (!userGaveUp)
-                speechOutputAnalysis = "wrong. ";
+            if (!userGaveUp) {
+                var incorrectResponseIndex = randomIntFromInterval(1, 3);
+                if (incorrectResponseIndex == 1)
+                    speechOutputAnalysis = "That answer is incorrect. ";
+                else if (incorrectResponseIndex == 2)
+                    speechOutputAnalysis = "Sorry, that's not right. ";
+                else
+                    speechOutputAnalysis = "No, that's not it. "
+            }
             speechOutputAnalysis += "The correct answer is " + correctAnswerIndex + ": " + correctAnswerText + ". ";
             CARD_TITLE = "Incorrect Answer";
         }
         // if currentQuestionIndex is 4, we've reached 5 questions (zero-indexed) and can exit the game session
         if (currentQuestionIndex == GAME_LENGTH - 1) {
-            speechOutput = userGaveUp ? "" : "That answer is ";
-            speechOutput += speechOutputAnalysis + "You got " + currentScore.toString() + " out of "
-                + GAME_LENGTH.toString() + " questions correct. ";
+            speechOutput += speechOutputAnalysis + "You got " + currentScore.toString() + " out of " + GAME_LENGTH.toString() + " questions correct. ";
             
-            if (currentScore / GAME_LENGTH === 1)
-                speechOutput += "A perfect score. ";
+            if (currentScore / GAME_LENGTH === 1) {
+                if (GAME_LENGTH === 1)
+                    speechOutput += "Maybe you could try for two next time?";
+                else
+                    speechOutput += "A perfect score.";
+            }
             else if (currentScore / GAME_LENGTH >= 0.8)
-                speechOutput += "Not bad. Not bad at all. ";
+                speechOutput += "Not bad. Not bad at all.";
             else if (currentScore / GAME_LENGTH > 0.5)
-                speechOutput += "That's more than half. Keep it up. ";
+                speechOutput += "That's more than half. Keep it up.";
             else
-                speechOutput += "Keep working on it. You'll get there. ";
+                speechOutput += "Keep working on it. You'll get there.";
                 
             CARD_TITLE = "Thanks for Playing!";
                 
@@ -541,26 +566,27 @@ function handleAnswerRequest(intent, session, callback) {
         } else {
             currentQuestionIndex += 1;
             var spokenQuestion = Object.keys(questions[gameQuestions[currentQuestionIndex]])[0];
+
             // Generate a random index for the correct answer, from 0 to 3
             correctAnswerIndex = Math.floor(Math.random() * (ANSWER_COUNT));
-            var roundAnswers = populateRoundAnswers(gameQuestions, currentQuestionIndex, correctAnswerIndex),
-                questionIndexForSpeech = currentQuestionIndex + 1,
-                repromptText = "Question " + questionIndexForSpeech.toString() + ". " + spokenQuestion + " ";
+            var roundAnswers = populateRoundAnswers(gameQuestions, currentQuestionIndex, correctAnswerIndex);
+            var questionIndexForSpeech = currentQuestionIndex + 1;
+            var repromptText = "Question " + questionIndexForSpeech.toString() + ". " + spokenQuestion + " ";
+
             for (var i = 0; i < ANSWER_COUNT; i++) {
-                repromptText += (i+1).toString() + ". " + roundAnswers[i] + ". "
+                repromptText += (i + 1).toString() + ". " + roundAnswers[i] + ". "
             }
-            speechOutput += userGaveUp ? "" : "That answer is ";
+
             speechOutput += speechOutputAnalysis + "Your score is " + currentScore.toString() + " of " + currentQuestionIndex + ". " + repromptText;
 
             sessionAttributes = {
-                "speechOutput": repromptText,
+                "speechOutput": speechOutput,
                 "repromptText": repromptText,
                 "currentQuestionIndex": currentQuestionIndex,
                 "correctAnswerIndex": correctAnswerIndex + 1,
                 "questions": gameQuestions,
                 "score": currentScore,
-                "correctAnswerText":
-                    questions[gameQuestions[currentQuestionIndex]][Object.keys(questions[gameQuestions[currentQuestionIndex]])[0]][0]
+                "correctAnswerText": questions[gameQuestions[currentQuestionIndex]][Object.keys(questions[gameQuestions[currentQuestionIndex]])[0]][0]
             };
             
             CARD_TITLE = "Question " + (currentQuestionIndex + 1) + " of " + GAME_LENGTH;
@@ -571,11 +597,11 @@ function handleAnswerRequest(intent, session, callback) {
 }
 
 function handleRepeatRequest(intent, session, callback) {
-    // Repeat the previous speechOutput and repromptText from the session attributes if available else start a new game session
+    // Repeat the previous repromptText from the session attributes if available else start a new game session
     if (!session.attributes || !session.attributes.speechOutput)
         getWelcomeResponse(callback);
     else
-        callback(session.attributes, buildSpeechletResponseWithoutCard(session.attributes.speechOutput, session.attributes.repromptText, false));
+        callback(session.attributes, buildSpeechletResponseWithoutCard(session.attributes.repromptText, session.attributes.repromptText, false));
 }
 
 function handleGetHelpRequest(intent, session, callback) {
