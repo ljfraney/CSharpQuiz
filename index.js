@@ -305,9 +305,9 @@ function onIntent(intentRequest, session, callback) {
     var intent = intentRequest.intent;
     var intentName = intentRequest.intent.name;
 
-    if (session.attributes && session.attributes.userProptedForQuestionCount) {
-        delete session.attributes.userProptedForQuestionCount;
-        if ("AMAZON.NUMBER" === intentName)
+    if (session.attributes && session.attributes.userPromptedForQuestionCount) {
+        //delete session.attributes.userPromptedForQuestionCount;
+        //if ("AMAZON.NUMBER" === intentName)
             handleNumberOfQuestionsRequest(intent, session, callback);
     }
 
@@ -371,7 +371,7 @@ function getWelcomeResponse(callback) {
     sessionAttributes = {
         "speechOutput": speechOutput,
         "repromptText": repromptText,
-        "userProptedForQuestionCount": true
+        "userPromptedForQuestionCount": true
     };
 
     callback(sessionAttributes, buildSpeechletResponse(CARD_TITLE, speechOutput, repromptText, shouldEndSession));
@@ -379,32 +379,34 @@ function getWelcomeResponse(callback) {
 
 function getWelcomeResponse2(callback) {
     console.log("getWelcomeResponse2 called.")
-    // var sessionAttributes = {},
-    //     speechOutput = "Welcome to C# Quiz. I'll ask " + GAME_LENGTH.toString()
-    //         + " questions about C#, DotNet, and Object Oriented Programming. Just say the number of the answer. Let's get started. ",
-    //     shouldEndSession = false,
 
-    var gameQuestions = populateGameQuestions(),
-        correctAnswerIndex = Math.floor(Math.random() * (ANSWER_COUNT)), // Generate a random index for the correct answer, from 0 to 3
-        roundAnswers = populateRoundAnswers(gameQuestions, 0, correctAnswerIndex),
+    var speechOutput = "OK. I will ask " + GAME_LENGTH + " questions. ";
+    var shouldEndSession = false;
 
-        currentQuestionIndex = 0,
-        spokenQuestion = Object.keys(questions[gameQuestions[currentQuestionIndex]])[0],
-        repromptText = "Question 1. " + spokenQuestion + " ";
+    var sessionAttributes = {};
+    var gameQuestions = populateGameQuestions();
+    var correctAnswerIndex = Math.floor(Math.random() * (ANSWER_COUNT)); // Generate a random index for the correct answer, from 0 to 3
+    var roundAnswers = populateRoundAnswers(gameQuestions, 0, correctAnswerIndex);
+
+    var currentQuestionIndex = 0;
+    var spokenQuestion = Object.keys(questions[gameQuestions[currentQuestionIndex]])[0];
+    var repromptText = "Question 1. " + spokenQuestion + " ";
 
     for (var i = 0; i < ANSWER_COUNT; i++)
         repromptText += (i + 1).toString() + ". " + roundAnswers[i] + ". ";
     
     speechOutput += repromptText;
-    sessionAttributes = {
-        "speechOutput": repromptText,
-        "repromptText": repromptText,
-        "currentQuestionIndex": currentQuestionIndex,
-        "correctAnswerIndex": correctAnswerIndex + 1,
-        "questions": gameQuestions,
-        "score": 0,
-        "correctAnswerText": questions[gameQuestions[currentQuestionIndex]][Object.keys(questions[gameQuestions[currentQuestionIndex]])[0]][0]
-    };
+    // sessionAttributes = {
+    //     "speechOutput": speechOutput,
+    //     "repromptText": repromptText,
+    //     "currentQuestionIndex": currentQuestionIndex,
+    //     "correctAnswerIndex": correctAnswerIndex + 1,
+    //     "questions": gameQuestions,
+    //     "score": 0,
+    //     "correctAnswerText": questions[gameQuestions[currentQuestionIndex]][Object.keys(questions[gameQuestions[currentQuestionIndex]])[0]][0]
+    // };
+
+    //TODO: It is breaking if we set sessionAttributes.
     
     callback(sessionAttributes, buildSpeechletResponse(CARD_TITLE, speechOutput, repromptText, shouldEndSession));
 }
@@ -466,16 +468,16 @@ function populateRoundAnswers(gameQuestionIndexes, correctAnswerIndex, correctAn
 
 function handleNumberOfQuestionsRequest(intent, session, callback) {
     var speechOutput = "";
-    if (!isNaN(parseInt(intent.slots.Answer.value)) && !(parseInt(intent.slots.Answer.value) > questions.length)) {
+
+    if (numQuestionsValid(intent)) {
+        delete session.attributes.userPromptedForQuestionCount;
         GAME_LENGTH = parseInt(intent.slots.Answer.value);
         getWelcomeResponse2(callback);
     }
     else {
-        var reprompt = session.attributes.speechOutput;
-        speechOutput = reprompt + "Please respond with a number between 1 and " + questions.length + ". ";
-        CARD_TITLE = "Invalid Number of Questions";
-        callback(session.attributes, buildSpeechletResponse(CARD_TITLE, speechOutput, reprompt, false));
-    }    
+        speechOutput = "Please respond with a number between 1 and " + questions.length + ". ";
+        callback(session.attributes, buildSpeechletResponse(CARD_TITLE, speechOutput, speechOutput, false));
+    }
 }
 
 function handleAnswerRequest(intent, session, callback) {
@@ -602,6 +604,12 @@ function handleGetHelpRequest(intent, session, callback) {
 function handleFinishSessionRequest(intent, session, callback) {
     // End the session with a "Good bye!" if the user wants to quit the game
     callback(session.attributes, buildSpeechletResponseWithoutCard("Good bye!", "", true));
+}
+
+function numQuestionsValid(intent) {
+    var numQuestionsFilled = intent.slots && intent.slots.Answer && intent.slots.Answer.value;
+    var numQuestionsIsInt = numQuestionsFilled && !isNaN(parseInt(intent.slots.Answer.value));
+    return numQuestionsIsInt && parseInt(intent.slots.Answer.value) <= questions.length;
 }
 
 function isAnswerSlotValid(intent) {
