@@ -1,49 +1,52 @@
 // This will not auto-deploy with grunt. It must be pasted into the Interaction Model for the Alexa Skill.
+
+//TODO: It appears that everything not tagged as an AnswerIntent, AnswerOnlyIntent, or one of the built-in types automatically
+//falls through to the DontKnowIntent. This is a problem for the question: "How many questions would you like me to ask?" because
+//it only recognizes 1-4, and then sees it as a DontKnowIntent. Can you specify a slot type to expect in the request?
+
 {
-	  "intents": [
-	    {
-	      "intent": "AnswerIntent",
-	      "slots": [
-	        {
-	          "name": "Answer",
-	          "type": "LIST_OF_ANSWERS"
-	        }
-	      ]
-	    },
-
-	        {
-	      "intent": "AnswerOnlyIntent",
-	      "slots": [
-	        {
-	          "name": "Answer",
-	          "type": "LIST_OF_ANSWERS"
-	        }
-	      ]
-	    },
-
-	    {
-	      "intent": "DontKnowIntent"
-	    },
-	    {
-	      "intent": "AMAZON.StartOverIntent"
-	    },
-	    {
-	      "intent": "AMAZON.RepeatIntent"
-	    },
-	    {
-	      "intent": "AMAZON.HelpIntent"
-	    },
-	    {
-	      "intent": "AMAZON.YesIntent"
-	    },
-	    {
-	      "intent": "AMAZON.NoIntent"
-	    },
-	    {
-	      "intent": "AMAZON.StopIntent"
-	    },
-	    {
-	      "intent": "AMAZON.CancelIntent"
-	    }
-	  ]
-	}
+    "intents": [
+        {
+            "intent": "AnswerIntent",
+            "slots": [
+                {
+                    "name": "Answer",
+                    "type": "LIST_OF_ANSWERS"
+                }
+            ]
+        },
+        {
+            "intent": "AnswerOnlyIntent",
+            "slots": [
+                {
+                    "name": "Answer",
+                    "type": "LIST_OF_ANSWERS"
+                }
+            ]
+        },
+        {
+            "intent": "DontKnowIntent"
+        },
+        {
+            "intent": "AMAZON.StartOverIntent"
+        },
+        {
+            "intent": "AMAZON.RepeatIntent"
+        },
+        {
+            "intent": "AMAZON.HelpIntent"
+        },
+        {
+            "intent": "AMAZON.YesIntent"
+        },
+        {
+            "intent": "AMAZON.NoIntent"
+        },
+        {
+            "intent": "AMAZON.StopIntent"
+        },
+        {
+            "intent": "AMAZON.CancelIntent"
+        }
+    ]
+}
