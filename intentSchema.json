@@ -1,0 +1,49 @@
+// This will not auto-deploy with grunt. It must be pasted into the Interaction Model for the Alexa Skill.
+{
+	  "intents": [
+	    {
+	      "intent": "AnswerIntent",
+	      "slots": [
+	        {
+	          "name": "Answer",
+	          "type": "LIST_OF_ANSWERS"
+	        }
+	      ]
+	    },
+
+	        {
+	      "intent": "AnswerOnlyIntent",
+	      "slots": [
+	        {
+	          "name": "Answer",
+	          "type": "LIST_OF_ANSWERS"
+	        }
+	      ]
+	    },
+
+	    {
+	      "intent": "DontKnowIntent"
+	    },
+	    {
+	      "intent": "AMAZON.StartOverIntent"
+	    },
+	    {
+	      "intent": "AMAZON.RepeatIntent"
+	    },
+	    {
+	      "intent": "AMAZON.HelpIntent"
+	    },
+	    {
+	      "intent": "AMAZON.YesIntent"
+	    },
+	    {
+	      "intent": "AMAZON.NoIntent"
+	    },
+	    {
+	      "intent": "AMAZON.StopIntent"
+	    },
+	    {
+	      "intent": "AMAZON.CancelIntent"
+	    }
+	  ]
+	}
