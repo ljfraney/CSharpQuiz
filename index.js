@@ -231,6 +231,26 @@ var questions = [
         "Officially released with Visual Studio 2015, this set of open-source compilers and code analysis tools is best known by the code name, ": [
             "Roslyn", "Katana", "Longhorn", "Redstone"
         ]
+    },
+    {
+        "Sometimes called an array of arrays, this is an array whose elements are arrays. The elements of a this type of array can be of different dimensions and sizes. ": [
+            "jagged array", "multidimentional array", "recursive array", "array list"
+        ]
+    },
+    {
+        "Used to pass methods as arguments to other methods, this C# type represents a reference to a method with a particular parameter list and return type. ": [
+            "delegate", "handler", "function", "interface"
+        ]
+    },
+    {
+        "This can be used to dynamically create an instance of a type, bind the type to an existing object, or get the type from an existing object and invoke its methods or access its fields and properties.": [
+            "reflection", "invocation", "decompilation", "refactoring"
+        ]
+    },
+    {
+        "The process of converting an object into a stream of bytes in order to store the object or transmit it to memory, a database, or a file is known as, ": [
+            "serialization", "streaming", "encoding", "stringifying"
+        ]
     }
 ];
 
