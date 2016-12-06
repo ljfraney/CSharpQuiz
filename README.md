@@ -9,4 +9,4 @@ The index.js file contains the code for the AWS Lambda Function. All of the skil
 
 The intentSchema.json and sampleUtterances.txt files' contents must be manually pasted into the [ASK Portal](https://developer.amazon.com/alexa-skills-kit).
 
-The package.json file defines development dependencies on grunt and grunt-aws-lambda. Together, these packages assist with the deployment of the AWS Lambda Function via the AWS Command Line Interface.
+The package.json file defines development dependencies on [grunt](http://gruntjs.com) and [grunt-aws-lambda](https://github.com/Tim-B/grunt-aws-lambda). Together, these packages assist with the deployment of the AWS Lambda Function via the [AWS Command Line Interface](https://aws.amazon.com/cli).
