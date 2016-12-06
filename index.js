@@ -315,10 +315,8 @@ function onIntent(intentRequest, session, callback) {
     var intent = intentRequest.intent;
     var intentName = intentRequest.intent.name;
 
-    if (session.attributes && session.attributes.userPromptedForQuestionCount) {
-        //delete session.attributes.userPromptedForQuestionCount;
-        //if ("AMAZON.NUMBER" === intentName)
-            handleNumberOfQuestionsRequest(intent, session, callback);
+    if (intentName === "AnswerIntent" && session.attributes && session.attributes.userPromptedForQuestionCount) {        
+        handleNumberOfQuestionsRequest(intent, session, callback);
     }
 
     // handle yes/no intent after the user has been prompted
@@ -332,7 +330,6 @@ function onIntent(intentRequest, session, callback) {
     
     switch (intentName) {
         case "AnswerIntent":
-        case "AnswerOnlyIntent":
         case "DontKnowIntent":
         case "AMAZON.YesIntent":
         case "AMAZON.NoIntent":
@@ -356,6 +353,18 @@ function onIntent(intentRequest, session, callback) {
     }
 }
 
+function handleNumberOfQuestionsRequest(intent, session, callback) {
+    if (isGreaterThanZero(intent) && parseInt(intent.slots.Answer.value) <= questions.length) {
+        delete session.attributes.userPromptedForQuestionCount;
+        GAME_LENGTH = parseInt(intent.slots.Answer.value);
+        startGame(callback);
+    }
+    else {
+        var speechOutput = "Please respond with a number between 1 and " + questions.length + ". ";
+        callback(session.attributes, buildSpeechletResponseWithoutCard(speechOutput, speechOutput, false));
+    }
+}
+
 //Called when the user ends the session. Is not called when the skill returns shouldEndSession=true.
 function onSessionEnded(sessionEndedRequest, session) {
     console.log("onSessionEnded requestId=" + sessionEndedRequest.requestId + ", sessionId=" + session.sessionId);
@@ -366,7 +375,7 @@ function onSessionEnded(sessionEndedRequest, session) {
 
 var ANSWER_COUNT = 4;
 var GAME_LENGTH = 5;
-var CARD_TITLE = "Welcome to C# Quiz";
+var CARD_TITLE;
 
 function getWelcomeResponse(callback) {
     console.log("getWelcomeResponse called.")
@@ -374,6 +383,8 @@ function getWelcomeResponse(callback) {
     var speechOutput = "Welcome to C# Quiz. In this quiz, you will answer questions about C#, DotNet, and Object Oriented Programming. ";    
     var repromptText = "I currently have " + questions.length + " questions in my question bank. How many questions would you like me to ask? ";
     var shouldEndSession = false;
+
+    CARD_TITLE = "Welcome to C# Quiz";
 
     speechOutput += repromptText;
 
@@ -471,18 +482,6 @@ function populateRoundAnswers(gameQuestionIndexes, correctAnswerIndex, correctAn
     return answers;
 }
 
-function handleNumberOfQuestionsRequest(intent, session, callback) {
-    if (isGreaterThanZero(intent) && parseInt(intent.slots.Answer.value) <= questions.length) {
-        delete session.attributes.userPromptedForQuestionCount;
-        GAME_LENGTH = parseInt(intent.slots.Answer.value);
-        startGame(callback);
-    }
-    else {
-        var speechOutput = "Please respond with a number between 1 and " + questions.length + ". ";
-        callback(session.attributes, buildSpeechletResponseWithoutCard(speechOutput, speechOutput, false));
-    }
-}
-
 function randomIntFromInterval(min, max)
 {
     return Math.floor(Math.random() * (max - min + 1) + min);
@@ -506,7 +505,7 @@ function handleAnswerRequest(intent, session, callback) {
         // If the user provided answer isn't a number > 0 and < ANSWER_COUNT,
         // return an error message to the user. Remember to guide the user into providing correct values.
         var reprompt = session.attributes.speechOutput;
-        var speechOutput = "Your answer must be a number between 1 and " + ANSWER_COUNT + ". " + reprompt;
+        var speechOutput = "Your answer must be a number between 1 and " + ANSWER_COUNT + ". ";// + reprompt;
         CARD_TITLE = "Invalid Answer";
         callback(session.attributes, buildSpeechletResponse(CARD_TITLE, speechOutput, reprompt, false));
     } else {
@@ -543,7 +542,7 @@ function handleAnswerRequest(intent, session, callback) {
             speechOutputAnalysis += "The correct answer is " + correctAnswerIndex + ": " + correctAnswerText + ". ";
             CARD_TITLE = "Incorrect Answer";
         }
-        // if currentQuestionIndex is 4, we've reached 5 questions (zero-indexed) and can exit the game session
+        // if currentQuestionIndex GAME_LENGTH minus one, we've reached the end questions (zero-indexed) and can exit the game session
         if (currentQuestionIndex == GAME_LENGTH - 1) {
             speechOutput += speechOutputAnalysis + "You got " + currentScore.toString() + " out of " + GAME_LENGTH.toString() + " questions correct. ";
             
